@@ -12,7 +12,7 @@ import config
 import os
 import re
 from datetime import datetime
-from modules import utility
+from modules import validation
 
 batch_dict = {}
 
@@ -36,7 +36,8 @@ for doc_path in docs:
                                 doc_path, f)) and re.match(r'\d{1,3}', f)]
                      })
 
-    if utility.check_isbn(doc_dict['id']) is True:     
+    #TODO MORE FLOW CONTROL!!! FIRST DETERMINE IDENTIFIER, THEN EXECUTE process_doc!!!
+    if validation.check_isbn(doc_dict['id']) is True:     
         try:
             status, errors = workflow.process_doc_monograph(doc_dict)
             doc_dict['status'] = status
@@ -49,7 +50,7 @@ for doc_path in docs:
             print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} ERROR (OBSAHATOR): Processing error in {doc_dict['name']} : {e}")
         print(">"*79)
     
-    elif utility.check_issn(doc_dict['id']) is True:
+    elif validation.check_issn(doc_dict['id']) is True:
         try:
             status, errors = workflow.process_doc_periodical(doc_dict)
             doc_dict['status'] = status
@@ -61,8 +62,33 @@ for doc_path in docs:
         except IOError as e:
             print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} ERROR (OBSAHATOR): Processing error in {doc_dict['name']} : {e}")
         print(">"*79)
-        
-    
+
+    if validation.check_cnb(doc_dict['id']) is True:
+        try:
+            status, errors = workflow.process_doc_monograph(doc_dict)
+            doc_dict['status'] = status
+            doc_dict['error'] = errors
+            batch_dict[os.path.basename(doc_path)] = doc_dict   # store the document information into the batch dictionary
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} INFO (OBSAHATOR): Processing {doc_dict['name']} finished with {len(errors)} errors...")
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} INFO (OBSAHATOR): List of errors:")
+            print(errors)
+        except IOError as e:
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} ERROR (OBSAHATOR): Processing error in {doc_dict['name']} : {e}")
+        print(">"*79)
+
+    if validation.check_sysno(doc_dict['id']) is True:
+        try:
+            status, errors = workflow.process_doc_monograph(doc_dict)
+            doc_dict['status'] = status
+            doc_dict['error'] = errors
+            batch_dict[os.path.basename(doc_path)] = doc_dict   # store the document information into the batch dictionary
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} INFO (OBSAHATOR): Processing {doc_dict['name']} finished with {len(errors)} errors...")
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} INFO (OBSAHATOR): List of errors:")
+            print(errors)
+        except IOError as e:
+            print(f"{format(datetime.now(), '%Y-%m-%d %H:%M:%S')} ERROR (OBSAHATOR): Processing error in {doc_dict['name']} : {e}")
+        print(">"*79)    
+
     else:
         pass
 
